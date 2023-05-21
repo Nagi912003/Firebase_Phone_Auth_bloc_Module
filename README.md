@@ -1,4 +1,4 @@
-**Flutter Phone Authentication Module**
+#Flutter Phone Authentication Module
 
 This Flutter module provides a seamless user registration experience using phone number verification. The module utilizes Firebase Authentication to send a 6-digit OTP code to the user for verification. Once verified, the user remains logged in until they explicitly log out.
 
