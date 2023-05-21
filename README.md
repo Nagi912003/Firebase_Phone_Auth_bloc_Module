@@ -36,6 +36,6 @@ Contributions to this module are welcome! If you encounter any issues or have su
 We would like to express our gratitude to the Flutter community and the contributors of the libraries used in this module. Their efforts have made it possible to create this seamless and secure phone authentication solution.
 
 **Contact:**
-For any questions or inquiries, please feel free to reach out to us at [your-contact-email@example.com]. We appreciate your interest and feedback.
+For any questions or inquiries, please feel free to reach out to us at [mohamednagi903@gmail.com]. We appreciate your interest and feedback.
 
 Happy coding!
