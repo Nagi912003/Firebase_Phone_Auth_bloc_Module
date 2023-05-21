@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:maps_firebase_sqflite_bloc/business_logic/cubit/phone_auth/phone_auth_cubit.dart';
+import 'package:maps_firebase_sqflite_bloc/business_logic/cubit/phone_auth/phone_auth_state.dart';
 
 import 'package:maps_firebase_sqflite_bloc/constants/my_colors.dart';
 
+import '../../constants/strings.dart';
+
 class LoginScreen extends StatelessWidget {
   LoginScreen({Key? key}) : super(key: key);
+
+  final GlobalKey<FormState> _phoneFormKey = GlobalKey();
 
   late String phoneNumber;
 
@@ -121,11 +128,32 @@ class LoginScreen extends StatelessWidget {
     return flag;
   }
 
-  Widget _buildNextButton() {
+  Future<void> _registerUser(BuildContext context) async {
+    if (_phoneFormKey.currentState!.validate()) {
+      Navigator.pop(context);
+      _phoneFormKey.currentState!.save();
+      print(phoneNumber);
+      await BlocProvider.of<PhoneAuthCubit>(context).submitPhoneNumber(phoneNumber);
+    }else{
+      Navigator.pop(context);
+      return;
+    }
+  }
+
+  Widget _buildNextButton(BuildContext context) {
     return Align(
       alignment: Alignment.centerRight,
       child: ElevatedButton(
-        onPressed: () {},
+        onPressed: () {
+          showProgressIndicator(context);
+
+          _registerUser(context);
+          // if (_phoneFormKey.currentState!.validate()) {
+          //   _phoneFormKey.currentState!.save();
+          //   print(phoneNumber);
+            Navigator.pushNamed(context, otpScreen);
+          //}
+        },
         style: ElevatedButton.styleFrom(
           minimumSize: const Size(110, 50),
           shape: RoundedRectangleBorder(
@@ -142,13 +170,64 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
+
+  void showProgressIndicator(BuildContext context) {
+    AlertDialog alert = const AlertDialog(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      content: Row(
+        children: [
+          CircularProgressIndicator( valueColor: AlwaysStoppedAnimation<Color>(Colors.deepPurpleAccent),),
+          SizedBox(width: 16),
+          Text("Loading..."),
+        ],
+      ),
+    );
+    showDialog(
+      barrierColor: Colors.white.withOpacity(0.5),
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return alert;
+      },
+    );
+  }
+
+  Widget _buildPhoneNumberSubmitedBloc(BuildContext context){
+    return BlocListener<PhoneAuthCubit,PhoneAuthState>(
+      listenWhen: (previous, current) {
+        return current != previous;
+      },
+      listener: (context, state) {
+        if (state is PhoneAuthLoading) {
+          showProgressIndicator(context);
+        }
+        if (state is PhoneNumberSubmitted) {
+          Navigator.pop(context);
+          Navigator.pushNamed(context, otpScreen, arguments: phoneNumber);
+        }
+        if (state is PhoneAuthError) {
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      },
+      child: Container(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.white, //MyColors.primaryColor,
         body: Form(
-          key: UniqueKey(),
+          key: _phoneFormKey,
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 88),
             child: Column(
@@ -158,7 +237,8 @@ class LoginScreen extends StatelessWidget {
                 const SizedBox(height: 110),
                 _buildPhoneFormField(),
                 const SizedBox(height: 70),
-                _buildNextButton(),
+                _buildNextButton(context),
+                _buildPhoneNumberSubmitedBloc(context),
               ],
             ),
           ),
